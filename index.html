@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratandeep Stationers</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f0f0, #d9e4f5);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        input, select {
+            width: 90%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        #popupMessage {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ratandeep Stationers</h2>
+        <label>Buyer Name: <input type="text" id="buyerName" placeholder="Enter buyer's name"></label>
+        <table id="billTable">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" class="item" list="itemList"></td>
+                    <td><input type="number" class="quantity" oninput="calculateTotal()"></td>
+                    <td><input type="number" class="price" oninput="calculateTotal()"></td>
+                    <td class="amount">0</td>
+                    <td>
+                        <select class="status">
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <datalist id="itemList">
+            <option value="Pen">
+            <option value="Pencil">
+            <option value="Notebook">
+            <option value="Eraser">
+            <option value="Sharpener">
+        </datalist>
+        <button onclick="addRow()">+ Add Item</button>
+        <h3 class="total">Total: ₹<span id="totalAmount">0</span></h3>
+        <button onclick="saveData()">Save Bill</button>
+        <button onclick="printBill()">Print Bill</button>
+        <button onclick="viewSavedData()">View Saved Bills</button>
+        <div id="popupMessage">Bill saved successfully!</div>
+    </div>
+
+    <script>
+        function addRow() {
+            let table = document.getElementById("billTable").getElementsByTagName('tbody')[0];
+            let newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="item" list="itemList"></td>
+                <td><input type="number" class="quantity" oninput="calculateTotal()"></td>
+                <td><input type="number" class="price" oninput="calculateTotal()"></td>
+                <td class="amount">0</td>
+                <td>
+                    <select class="status">
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </td>
+            `;
+        }
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll("tbody tr").forEach(row => {
+                let quantity = row.querySelector(".quantity").value || 0;
+                let price = row.querySelector(".price").value || 0;
+                let amount = quantity * price;
+                row.querySelector(".amount").textContent = amount;
+                total += amount;
+            });
+            document.getElementById("totalAmount").textContent = total;
+        }
+        function saveData() {
+            let buyerName = document.getElementById("buyerName").value;
+            let items = [];
+            document.querySelectorAll("tbody tr").forEach(row => {
+                let item = row.querySelector(".item").value;
+                let quantity = row.querySelector(".quantity").value;
+                let price = row.querySelector(".price").value;
+                let amount = row.querySelector(".amount").textContent;
+                let status = row.querySelector(".status").value;
+                if (item && quantity && price) {
+                    items.push({ item, quantity, price, amount, status });
+                }
+            });
+            let bills = JSON.parse(localStorage.getItem("bills")) || [];
+            bills.push({ buyerName, items, totalAmount: document.getElementById("totalAmount").textContent, date: new Date().toLocaleString() });
+            localStorage.setItem("bills", JSON.stringify(bills));
+
+            document.getElementById("popupMessage").style.display = "block";
+            setTimeout(() => { document.getElementById("popupMessage").style.display = "none"; }, 1000);
+        }
+        function printBill() {
+            window.print();
+        }
+        function viewSavedData() {
+            window.open("saved_bills.html", "_blank");
+        }
+    </script>
+</body>
+</html>
